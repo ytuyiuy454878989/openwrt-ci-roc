@@ -395,7 +395,7 @@ jobs:
           - 固件编译前最后一次➦[主源码](${{ inputs.repo_url }})更新记录
           - ${{ needs.Build.outputs.version_info }}
           - 插件列表：
-          -  ${{ grep -oP "luci-app(-[a-zA-Z0-9]{1,}){1,}" ./firmware/*.manifest | awk -F":" '{print $NF}')" 
+          - ${{ grep -oP "luci-app(-[a-zA-Z0-9]{1,}){1,}" ./firmware/*.manifest | awk -F":" '{print $NF}'}} 
   Cleanup:
     runs-on: ubuntu-24.04
     needs:
