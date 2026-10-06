@@ -371,6 +371,28 @@ jobs:
         name: ${{ needs.Build.outputs.artifact_name }}
         path: artifacts/firmware
 
+
+
+    - name: Generate Plugin List(生成插件列表markdown)
+      id: gen_plugin_list
+      env:
+        MANIFEST_NAME: ${{ inputs.artifact_prefix }}.manifest
+      run: |
+        MANIFEST_PATH="artifacts/firmware/${MANIFEST_NAME}"
+        PLUGIN_TEXT="无luci‑app插件"
+        if [ -f "${MANIFEST_PATH}" ]; then
+          # 提取所有luci‑app，去重，输出markdown列表
+          PLUGINS=$(grep -oP 'luci-app-\w+' "${MANIFEST_PATH}" | sort -u | sed 's/^/- /')
+          if [ -n "${PLUGINS}" ]; then
+            PLUGIN_TEXT="${PLUGINS}"
+          fi
+        fi
+        {
+          echo "plugin_markdown<<EOF"
+          echo "${PLUGIN_TEXT}"
+          echo "EOF"
+        } >> "$GITHUB_OUTPUT"
+
     - name: Upload Firmware To Release(发布固件)
       uses: ncipollo/release-action@v1
       with:
@@ -394,8 +416,10 @@ jobs:
           - 固件内核版本：**${{ needs.Build.outputs.version_kernel }}**
           - 固件编译前最后一次➦[主源码](${{ inputs.repo_url }})更新记录
           - ${{ needs.Build.outputs.version_info }}
-          - 插件列表：
-          - ${{ grep -oP "luci-app(-[a-zA-Z0-9]{1,}){1,}" ./firmware/*.manifest | awk -F":" '{print $NF}'}} 
+          ### 📦 插件列表
+          ${{ steps.gen_plugin_list.outputs.plugin_markdown }}
+
+
   Cleanup:
     runs-on: ubuntu-24.04
     needs:
